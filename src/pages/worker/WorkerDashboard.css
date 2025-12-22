@@ -1,0 +1,40 @@
+.dashboard {
+  padding: 24px;
+}
+
+.dashboard h1 {
+  margin-bottom: 16px;
+}
+
+.job-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.job-table th,
+.job-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  vertical-align: top;
+}
+
+.job-table th {
+  background-color: #f0f0f0;
+}
+
+.job-table select {
+  padding: 6px;
+}
+
+.measurements {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.measurements input {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
