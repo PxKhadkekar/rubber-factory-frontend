@@ -7,25 +7,23 @@ function AdminDashboard() {
   const [jobs, setJobs] = useState([]);
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [toast, setToast] = useState({ message: "", type: "" });
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
-    setTimeout(() => {
-      setToast({ message: "", type: "" });
-    }, 3000);
+    setTimeout(() => setToast({ message: "", type: "" }), 3000);
   };
 
   const fetchData = async () => {
     try {
-      const jobsRes = await api.get("/jobs");
-      const workersRes = await api.get("/users/workers");
-
+      const [jobsRes, workersRes] = await Promise.all([
+        api.get("/jobs"),
+        api.get("/users/workers"),
+      ]);
       setJobs(jobsRes.data);
       setWorkers(workersRes.data);
     } catch {
-      setError("Failed to load admin data");
+      showToast("Failed to load admin data", "error");
     } finally {
       setLoading(false);
     }
@@ -40,65 +38,79 @@ function AdminDashboard() {
 
     try {
       await api.patch(`/jobs/${jobId}/assign`, { workerId });
-      showToast("Worker assigned successfully");
+      showToast("Worker assigned");
       fetchData();
     } catch {
-      showToast("Failed to assign worker", "error");
+      showToast("Assignment failed", "error");
+    }
+  };
+
+  const approveJob = async (jobId) => {
+    try {
+      await api.patch(`/jobs/${jobId}/approve`);
+      showToast("Job approved");
+      fetchData();
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || "Approval failed",
+        "error"
+      );
     }
   };
 
   if (loading) return <p className="dashboard">Loading admin dashboard...</p>;
-  if (error) return <p className="dashboard">{error}</p>;
 
   return (
     <div className="dashboard">
       <h1>Admin Dashboard</h1>
 
-      {jobs.length === 0 ? (
-        <p>No jobs found.</p>
-      ) : (
-        <table className="job-table">
-          <thead>
-            <tr>
-              <th>Job No</th>
-              <th>Vehicle</th>
-              <th>Status</th>
-              <th>Assigned Worker</th>
-              <th>Assign</th>
-            </tr>
-          </thead>
+      <table className="job-table">
+        <thead>
+          <tr>
+            <th>Job No</th>
+            <th>Vehicle</th>
+            <th>Status</th>
+            <th>Worker</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
 
-          <tbody>
-            {jobs.map((job) => (
-              <tr key={job._id}>
-                <td>{job.jobNumber}</td>
-                <td>{job.vehicleNumber}</td>
-                <td>{job.status}</td>
-                <td>
-                  {job.assignedWorker
-                    ? job.assignedWorker.name
-                    : "Not Assigned"}
-                </td>
-                <td>
+        <tbody>
+          {jobs.map((job) => (
+            <tr key={job._id}>
+              <td>{job.jobNumber}</td>
+              <td>{job.vehicleNumber}</td>
+              <td>{job.status}</td>
+              <td>
+                {job.assignedWorker
+                  ? job.assignedWorker.name
+                  : "Not Assigned"}
+              </td>
+              <td>
+                {job.waitingForApproval ? (
+                  <button onClick={() => approveJob(job._id)}>
+                    Approve
+                  </button>
+                ) : (
                   <select
                     defaultValue=""
                     onChange={(e) =>
                       assignWorker(job._id, e.target.value)
                     }
                   >
-                    <option value="">Select Worker</option>
+                    <option value="">Assign Worker</option>
                     {workers.map((worker) => (
                       <option key={worker._id} value={worker._id}>
                         {worker.name}
                       </option>
                     ))}
                   </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <Toast
         message={toast.message}

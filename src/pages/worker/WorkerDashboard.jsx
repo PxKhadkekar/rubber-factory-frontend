@@ -3,15 +3,10 @@ import api from "../../api/axios";
 import Toast from "../../components/Toast";
 import "./WorkerDashboard.css";
 
-/**
- * Frontend mirror of backend workflow
- * Backend is still the authority
- */
 const JOB_STATUS_FLOW = [
   "RECEIVED",
   "GRINDING",
   "SANDBLASTING",
-  "AWAITING_ADMIN_APPROVAL",
   "COATING",
   "BONDING",
   "FINISHING",
@@ -22,9 +17,8 @@ const JOB_STATUS_FLOW = [
 const MEASUREMENT_RULES = {
   GRINDING: ["jobLength", "jobOldOd", "jobMsOd", "msWeight"],
   SANDBLASTING: [],
-  AWAITING_ADMIN_APPROVAL: [],
   COATING: ["eboniteOd"],
-  BONDING: ["rubberRoughOd"],
+  BONDING: ["roughOd"],
   FINISHING: ["finishOd"],
   INSPECTION: [],
   DISPATCHED: [],
@@ -32,21 +26,17 @@ const MEASUREMENT_RULES = {
 
 const getNextStatus = (currentStatus) => {
   const index = JOB_STATUS_FLOW.indexOf(currentStatus);
-  if (index === -1 || index === JOB_STATUS_FLOW.length - 1) {
-    return null;
-  }
+  if (index === -1 || index === JOB_STATUS_FLOW.length - 1) return null;
   return JOB_STATUS_FLOW[index + 1];
 };
 
 const isMeasurementEditable = (status, field) => {
-  const allowedFields = MEASUREMENT_RULES[status] || [];
-  return allowedFields.includes(field);
+  return (MEASUREMENT_RULES[status] || []).includes(field);
 };
 
 function WorkerDashboard() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [toast, setToast] = useState({ message: "", type: "" });
 
   const showToast = (message, type = "success") => {
@@ -59,7 +49,7 @@ function WorkerDashboard() {
       const res = await api.get("/jobs/my");
       setJobs(res.data);
     } catch {
-      setError("Failed to load jobs");
+      showToast("Failed to load jobs", "error");
     } finally {
       setLoading(false);
     }
@@ -76,7 +66,7 @@ function WorkerDashboard() {
       fetchMyJobs();
     } catch (err) {
       showToast(
-        err.response?.data?.message || "Failed to update status",
+        err.response?.data?.message || "Status update failed",
         "error"
       );
     }
@@ -89,21 +79,20 @@ function WorkerDashboard() {
       fetchMyJobs();
     } catch (err) {
       showToast(
-        err.response?.data?.message || "Failed to update measurements",
+        err.response?.data?.message || "Measurement update failed",
         "error"
       );
     }
   };
 
   if (loading) return <p className="dashboard">Loading jobs...</p>;
-  if (error) return <p className="dashboard">{error}</p>;
 
   return (
     <div className="dashboard">
       <h1>My Jobs</h1>
 
       {jobs.length === 0 ? (
-        <p>No jobs assigned yet.</p>
+        <p>No jobs assigned.</p>
       ) : (
         <table className="job-table">
           <thead>
@@ -111,7 +100,7 @@ function WorkerDashboard() {
               <th>Job No</th>
               <th>Vehicle</th>
               <th>Status</th>
-              <th>Update Status</th>
+              <th>Next Step</th>
               <th>Measurements</th>
             </tr>
           </thead>
@@ -120,6 +109,7 @@ function WorkerDashboard() {
             {jobs.map((job) => {
               const nextStatus = getNextStatus(job.status);
               const isLocked =
+                job.waitingForApproval ||
                 job.status === "INSPECTION" ||
                 job.status === "DISPATCHED";
 
@@ -144,81 +134,55 @@ function WorkerDashboard() {
                       )}
                     </select>
 
-                    {isLocked && (
+                    {job.waitingForApproval && (
                       <p className="locked-text">
-                        Job locked after inspection
+                        Waiting for admin approval
                       </p>
                     )}
+
+                    {!job.waitingForApproval &&
+                      (job.status === "INSPECTION" ||
+                        job.status === "DISPATCHED") && (
+                        <p className="locked-text">
+                          Job locked
+                        </p>
+                      )}
                   </td>
 
                   {/* MEASUREMENTS */}
                   <td>
                     <div className="measurements">
-                      <input
-                        type="number"
-                        placeholder="Job Length"
-                        disabled={
-                          isLocked ||
-                          !isMeasurementEditable(job.status, "jobLength")
-                        }
-                        defaultValue={job.measurements?.jobLength || ""}
-                        onBlur={(e) =>
-                          updateMeasurements(job._id, {
-                            jobLength: Number(e.target.value),
-                          })
-                        }
-                      />
-
-                      <input
-                        type="number"
-                        placeholder="Old OD"
-                        disabled={
-                          isLocked ||
-                          !isMeasurementEditable(job.status, "jobOldOd")
-                        }
-                        defaultValue={job.measurements?.jobOldOd || ""}
-                        onBlur={(e) =>
-                          updateMeasurements(job._id, {
-                            jobOldOd: Number(e.target.value),
-                          })
-                        }
-                      />
-
-                      <input
-                        type="number"
-                        placeholder="MS Weight"
-                        disabled={
-                          isLocked ||
-                          !isMeasurementEditable(job.status, "msWeight")
-                        }
-                        defaultValue={job.measurements?.msWeight || ""}
-                        onBlur={(e) =>
-                          updateMeasurements(job._id, {
-                            msWeight: Number(e.target.value),
-                          })
-                        }
-                      />
-
-                      <input
-                        type="number"
-                        placeholder="Finish OD"
-                        disabled={
-                          isLocked ||
-                          !isMeasurementEditable(job.status, "finishOd")
-                        }
-                        defaultValue={job.measurements?.finishOd || ""}
-                        onBlur={(e) =>
-                          updateMeasurements(job._id, {
-                            finishOd: Number(e.target.value),
-                          })
-                        }
-                      />
+                      {[
+                        { key: "jobLength", label: "Job Length" },
+                        { key: "jobOldOd", label: "Old OD" },
+                        { key: "jobMsOd", label: "MS OD" },
+                        { key: "msWeight", label: "MS Weight" },
+                        { key: "eboniteOd", label: "Ebonite OD" },
+                        { key: "roughOd", label: "Rubber Rough OD" },
+                        { key: "finishOd", label: "Finish OD" },
+                      ].map(({ key, label }) => (
+                        <input
+                          key={key}
+                          type="number"
+                          placeholder={label}
+                          disabled={
+                            isLocked ||
+                            !isMeasurementEditable(job.status, key)
+                          }
+                          defaultValue={job.measurements?.[key] || ""}
+                          onBlur={(e) =>
+                            updateMeasurements(job._id, {
+                              [key]: Number(e.target.value),
+                            })
+                          }
+                        />
+                      ))}
                     </div>
 
                     {!isLocked &&
-                      MEASUREMENT_RULES[job.status]?.length === 0 && (
+                      (MEASUREMENT_RULES[job.status] || []).length === 0 && (
                         <p className="locked-text">
-                          No measurements editable in this phase
+                          No measurements allowed in this phase
                         </p>
                       )}
                   </td>
