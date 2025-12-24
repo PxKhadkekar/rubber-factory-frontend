@@ -19,12 +19,28 @@ const JOB_STATUS_FLOW = [
   "DISPATCHED",
 ];
 
+const MEASUREMENT_RULES = {
+  GRINDING: ["jobLength", "jobOldOd", "jobMsOd", "msWeight"],
+  SANDBLASTING: [],
+  AWAITING_ADMIN_APPROVAL: [],
+  COATING: ["eboniteOd"],
+  BONDING: ["rubberRoughOd"],
+  FINISHING: ["finishOd"],
+  INSPECTION: [],
+  DISPATCHED: [],
+};
+
 const getNextStatus = (currentStatus) => {
   const index = JOB_STATUS_FLOW.indexOf(currentStatus);
   if (index === -1 || index === JOB_STATUS_FLOW.length - 1) {
     return null;
   }
   return JOB_STATUS_FLOW[index + 1];
+};
+
+const isMeasurementEditable = (status, field) => {
+  const allowedFields = MEASUREMENT_RULES[status] || [];
+  return allowedFields.includes(field);
 };
 
 function WorkerDashboard() {
@@ -35,9 +51,7 @@ function WorkerDashboard() {
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
-    setTimeout(() => {
-      setToast({ message: "", type: "" });
-    }, 3000);
+    setTimeout(() => setToast({ message: "", type: "" }), 3000);
   };
 
   const fetchMyJobs = async () => {
@@ -73,8 +87,11 @@ function WorkerDashboard() {
       await api.patch(`/jobs/${jobId}`, { measurements });
       showToast("Measurements saved");
       fetchMyJobs();
-    } catch {
-      showToast("Failed to update measurements", "error");
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || "Failed to update measurements",
+        "error"
+      );
     }
   };
 
@@ -112,7 +129,7 @@ function WorkerDashboard() {
                   <td>{job.vehicleNumber}</td>
                   <td>{job.status}</td>
 
-                  {/* STATUS DROPDOWN */}
+                  {/* STATUS */}
                   <td>
                     <select
                       value={job.status}
@@ -121,14 +138,9 @@ function WorkerDashboard() {
                         updateStatus(job._id, e.target.value)
                       }
                     >
-                      <option value={job.status}>
-                        {job.status}
-                      </option>
-
+                      <option value={job.status}>{job.status}</option>
                       {nextStatus && (
-                        <option value={nextStatus}>
-                          {nextStatus}
-                        </option>
+                        <option value={nextStatus}>{nextStatus}</option>
                       )}
                     </select>
 
@@ -143,9 +155,12 @@ function WorkerDashboard() {
                   <td>
                     <div className="measurements">
                       <input
-                        disabled={isLocked}
                         type="number"
                         placeholder="Job Length"
+                        disabled={
+                          isLocked ||
+                          !isMeasurementEditable(job.status, "jobLength")
+                        }
                         defaultValue={job.measurements?.jobLength || ""}
                         onBlur={(e) =>
                           updateMeasurements(job._id, {
@@ -155,9 +170,12 @@ function WorkerDashboard() {
                       />
 
                       <input
-                        disabled={isLocked}
                         type="number"
                         placeholder="Old OD"
+                        disabled={
+                          isLocked ||
+                          !isMeasurementEditable(job.status, "jobOldOd")
+                        }
                         defaultValue={job.measurements?.jobOldOd || ""}
                         onBlur={(e) =>
                           updateMeasurements(job._id, {
@@ -167,21 +185,27 @@ function WorkerDashboard() {
                       />
 
                       <input
-                        disabled={isLocked}
                         type="number"
-                        placeholder="Required OD"
-                        defaultValue={job.measurements?.requiredOd || ""}
+                        placeholder="MS Weight"
+                        disabled={
+                          isLocked ||
+                          !isMeasurementEditable(job.status, "msWeight")
+                        }
+                        defaultValue={job.measurements?.msWeight || ""}
                         onBlur={(e) =>
                           updateMeasurements(job._id, {
-                            requiredOd: Number(e.target.value),
+                            msWeight: Number(e.target.value),
                           })
                         }
                       />
 
                       <input
-                        disabled={isLocked}
                         type="number"
                         placeholder="Finish OD"
+                        disabled={
+                          isLocked ||
+                          !isMeasurementEditable(job.status, "finishOd")
+                        }
                         defaultValue={job.measurements?.finishOd || ""}
                         onBlur={(e) =>
                           updateMeasurements(job._id, {
@@ -190,6 +214,13 @@ function WorkerDashboard() {
                         }
                       />
                     </div>
+
+                    {!isLocked &&
+                      MEASUREMENT_RULES[job.status]?.length === 0 && (
+                        <p className="locked-text">
+                          No measurements editable in this phase
+                        </p>
+                      )}
                   </td>
                 </tr>
               );
