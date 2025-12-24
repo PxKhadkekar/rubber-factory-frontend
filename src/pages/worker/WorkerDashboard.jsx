@@ -3,14 +3,29 @@ import api from "../../api/axios";
 import Toast from "../../components/Toast";
 import "./WorkerDashboard.css";
 
-const STATUS_OPTIONS = [
+/**
+ * Frontend mirror of backend workflow
+ * Backend is still the authority
+ */
+const JOB_STATUS_FLOW = [
+  "RECEIVED",
   "GRINDING",
   "SANDBLASTING",
+  "AWAITING_ADMIN_APPROVAL",
   "COATING",
   "BONDING",
   "FINISHING",
   "INSPECTION",
+  "DISPATCHED",
 ];
+
+const getNextStatus = (currentStatus) => {
+  const index = JOB_STATUS_FLOW.indexOf(currentStatus);
+  if (index === -1 || index === JOB_STATUS_FLOW.length - 1) {
+    return null;
+  }
+  return JOB_STATUS_FLOW[index + 1];
+};
 
 function WorkerDashboard() {
   const [jobs, setJobs] = useState([]);
@@ -45,8 +60,11 @@ function WorkerDashboard() {
       await api.patch(`/jobs/${jobId}`, { status });
       showToast("Status updated");
       fetchMyJobs();
-    } catch {
-      showToast("Failed to update status", "error");
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || "Failed to update status",
+        "error"
+      );
     }
   };
 
@@ -82,76 +100,100 @@ function WorkerDashboard() {
           </thead>
 
           <tbody>
-            {jobs.map((job) => (
-              <tr key={job._id}>
-                <td>{job.jobNumber}</td>
-                <td>{job.vehicleNumber}</td>
-                <td>{job.status}</td>
+            {jobs.map((job) => {
+              const nextStatus = getNextStatus(job.status);
+              const isLocked =
+                job.status === "INSPECTION" ||
+                job.status === "DISPATCHED";
 
-                <td>
-                  <select
-                    value={job.status}
-                    onChange={(e) =>
-                      updateStatus(job._id, e.target.value)
-                    }
-                  >
-                    {STATUS_OPTIONS.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
+              return (
+                <tr key={job._id}>
+                  <td>{job.jobNumber}</td>
+                  <td>{job.vehicleNumber}</td>
+                  <td>{job.status}</td>
+
+                  {/* STATUS DROPDOWN */}
+                  <td>
+                    <select
+                      value={job.status}
+                      disabled={isLocked || !nextStatus}
+                      onChange={(e) =>
+                        updateStatus(job._id, e.target.value)
+                      }
+                    >
+                      <option value={job.status}>
+                        {job.status}
                       </option>
-                    ))}
-                  </select>
-                </td>
 
-                <td>
-                  <div className="measurements">
-                    <input
-                      type="number"
-                      placeholder="Job Length"
-                      defaultValue={job.measurements?.jobLength || ""}
-                      onBlur={(e) =>
-                        updateMeasurements(job._id, {
-                          jobLength: Number(e.target.value),
-                        })
-                      }
-                    />
+                      {nextStatus && (
+                        <option value={nextStatus}>
+                          {nextStatus}
+                        </option>
+                      )}
+                    </select>
 
-                    <input
-                      type="number"
-                      placeholder="Old OD"
-                      defaultValue={job.measurements?.jobOldOd || ""}
-                      onBlur={(e) =>
-                        updateMeasurements(job._id, {
-                          jobOldOd: Number(e.target.value),
-                        })
-                      }
-                    />
+                    {isLocked && (
+                      <p className="locked-text">
+                        Job locked after inspection
+                      </p>
+                    )}
+                  </td>
 
-                    <input
-                      type="number"
-                      placeholder="Required OD"
-                      defaultValue={job.measurements?.requiredOd || ""}
-                      onBlur={(e) =>
-                        updateMeasurements(job._id, {
-                          requiredOd: Number(e.target.value),
-                        })
-                      }
-                    />
+                  {/* MEASUREMENTS */}
+                  <td>
+                    <div className="measurements">
+                      <input
+                        disabled={isLocked}
+                        type="number"
+                        placeholder="Job Length"
+                        defaultValue={job.measurements?.jobLength || ""}
+                        onBlur={(e) =>
+                          updateMeasurements(job._id, {
+                            jobLength: Number(e.target.value),
+                          })
+                        }
+                      />
 
-                    <input
-                      type="number"
-                      placeholder="Finish OD"
-                      defaultValue={job.measurements?.finishOd || ""}
-                      onBlur={(e) =>
-                        updateMeasurements(job._id, {
-                          finishOd: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      <input
+                        disabled={isLocked}
+                        type="number"
+                        placeholder="Old OD"
+                        defaultValue={job.measurements?.jobOldOd || ""}
+                        onBlur={(e) =>
+                          updateMeasurements(job._id, {
+                            jobOldOd: Number(e.target.value),
+                          })
+                        }
+                      />
+
+                      <input
+                        disabled={isLocked}
+                        type="number"
+                        placeholder="Required OD"
+                        defaultValue={job.measurements?.requiredOd || ""}
+                        onBlur={(e) =>
+                          updateMeasurements(job._id, {
+                            requiredOd: Number(e.target.value),
+                          })
+                        }
+                      />
+
+                      <input
+                        disabled={isLocked}
+                        type="number"
+                        placeholder="Finish OD"
+                        defaultValue={job.measurements?.finishOd || ""}
+                        onBlur={(e) =>
+                          updateMeasurements(job._id, {
+                            finishOd: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
