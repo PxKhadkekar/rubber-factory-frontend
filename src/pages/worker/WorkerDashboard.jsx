@@ -1,18 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import Toast from "../../components/Toast";
+import workerJobStatusFlow from "../../constants/workerJobStatusFlow";
 import "./WorkerDashboard.css";
-
-const JOB_STATUS_FLOW = [
-  "RECEIVED",
-  "GRINDING",
-  "SANDBLASTING",
-  "COATING",
-  "BONDING",
-  "FINISHING",
-  "INSPECTION",
-  "DISPATCHED",
-];
 
 const MEASUREMENT_RULES = {
   GRINDING: ["jobLength", "jobOldOd", "jobMsOd", "msWeight"],
@@ -22,12 +12,6 @@ const MEASUREMENT_RULES = {
   FINISHING: ["finishOd"],
   INSPECTION: [],
   DISPATCHED: [],
-};
-
-const getNextStatus = (currentStatus) => {
-  const index = JOB_STATUS_FLOW.indexOf(currentStatus);
-  if (index === -1 || index === JOB_STATUS_FLOW.length - 1) return null;
-  return JOB_STATUS_FLOW[index + 1];
 };
 
 const isMeasurementEditable = (status, field) => {
@@ -107,9 +91,15 @@ function WorkerDashboard() {
 
           <tbody>
             {jobs.map((job) => {
-              const nextStatus = getNextStatus(job.status);
+              // Worker must NEVER see admin-pending jobs
+              if (job.status === "AWAITING_ADMIN_APPROVAL") {
+                return null;
+              }
+
+              const allowedNextStatuses =
+                workerJobStatusFlow[job.status] || [];
+
               const isLocked =
-                job.waitingForApproval ||
                 job.status === "INSPECTION" ||
                 job.status === "DISPATCHED";
 
@@ -121,32 +111,25 @@ function WorkerDashboard() {
 
                   {/* STATUS */}
                   <td>
-                    <select
-                      value={job.status}
-                      disabled={isLocked || !nextStatus}
-                      onChange={(e) =>
-                        updateStatus(job._id, e.target.value)
-                      }
-                    >
-                      <option value={job.status}>{job.status}</option>
-                      {nextStatus && (
-                        <option value={nextStatus}>{nextStatus}</option>
-                      )}
-                    </select>
-
-                    {job.waitingForApproval && (
-                      <p className="locked-text">
-                        Waiting for admin approval
-                      </p>
+                    {allowedNextStatuses.length > 0 && !isLocked ? (
+                      <select
+                        defaultValue=""
+                        onChange={(e) =>
+                          updateStatus(job._id, e.target.value)
+                        }
+                      >
+                        <option value="" disabled>
+                          Move to next stage
+                        </option>
+                        {allowedNextStatuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="locked-text">No actions available</p>
                     )}
-
-                    {!job.waitingForApproval &&
-                      (job.status === "INSPECTION" ||
-                        job.status === "DISPATCHED") && (
-                        <p className="locked-text">
-                          Job locked
-                        </p>
-                      )}
                   </td>
 
                   {/* MEASUREMENTS */}
