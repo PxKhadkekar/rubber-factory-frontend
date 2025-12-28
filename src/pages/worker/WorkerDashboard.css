@@ -9,7 +9,7 @@
 .job-table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: #fff;
 }
 
 .job-table th,
@@ -20,7 +20,7 @@
 }
 
 .job-table th {
-  background-color: #f0f0f0;
+  background-color: #f5f5f5;
 }
 
 .job-table select {
@@ -37,4 +37,43 @@
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.locked-text {
+  color: #999;
+  font-size: 13px;
+}
+
+/* Status badge */
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  background: #eaeaea;
+}
+
+.status-badge.RECEIVED {
+  background: #e3f2fd;
+}
+.status-badge.GRINDING {
+  background: #fff3e0;
+}
+.status-badge.SANDBLASTING {
+  background: #ede7f6;
+}
+.status-badge.COATING {
+  background: #e8f5e9;
+}
+.status-badge.BONDING {
+  background: #fce4ec;
+}
+.status-badge.FINISHING {
+  background: #f3e5f5;
+}
+.status-badge.INSPECTION {
+  background: #e0f2f1;
+}
+.status-badge.DISPATCHED {
+  background: #c8e6c9;
 }

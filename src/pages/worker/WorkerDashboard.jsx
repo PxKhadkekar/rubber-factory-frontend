@@ -14,9 +14,8 @@ const MEASUREMENT_RULES = {
   DISPATCHED: [],
 };
 
-const isMeasurementEditable = (status, field) => {
-  return (MEASUREMENT_RULES[status] || []).includes(field);
-};
+const isMeasurementEditable = (status, field) =>
+  (MEASUREMENT_RULES[status] || []).includes(field);
 
 function WorkerDashboard() {
   const [jobs, setJobs] = useState([]);
@@ -44,15 +43,13 @@ function WorkerDashboard() {
   }, []);
 
   const updateStatus = async (jobId, status) => {
+    if (!status) return;
     try {
       await api.patch(`/jobs/${jobId}`, { status });
       showToast("Status updated");
       fetchMyJobs();
     } catch (err) {
-      showToast(
-        err.response?.data?.message || "Status update failed",
-        "error"
-      );
+      showToast(err.response?.data?.message || "Status update failed", "error");
     }
   };
 
@@ -91,10 +88,8 @@ function WorkerDashboard() {
 
           <tbody>
             {jobs.map((job) => {
-              // Worker must NEVER see admin-pending jobs
-              if (job.status === "AWAITING_ADMIN_APPROVAL") {
-                return null;
-              }
+              // HARD BLOCK: Worker never sees admin-pending jobs
+              if (job.status === "AWAITING_ADMIN_APPROVAL") return null;
 
               const allowedNextStatuses =
                 workerJobStatusFlow[job.status] || [];
@@ -107,11 +102,15 @@ function WorkerDashboard() {
                 <tr key={job._id}>
                   <td>{job.jobNumber}</td>
                   <td>{job.vehicleNumber}</td>
-                  <td>{job.status}</td>
-
-                  {/* STATUS */}
                   <td>
-                    {allowedNextStatuses.length > 0 && !isLocked ? (
+                    <span className={`status-badge ${job.status}`}>
+                      {job.status}
+                    </span>
+                  </td>
+
+                  {/* STATUS TRANSITION */}
+                  <td>
+                    {!isLocked && allowedNextStatuses.length > 0 ? (
                       <select
                         defaultValue=""
                         onChange={(e) =>
@@ -128,7 +127,7 @@ function WorkerDashboard() {
                         ))}
                       </select>
                     ) : (
-                      <p className="locked-text">No actions available</p>
+                      <span className="locked-text">Locked</span>
                     )}
                   </td>
 
