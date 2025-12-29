@@ -4,6 +4,7 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import WorkerDashboard from "./pages/worker/WorkerDashboard";
 import CreateJob from "./pages/admin/jobs/CreateJob";
+import JobDetail from "./pages/JobDetail";
 
 function App() {
   return (
@@ -38,6 +39,8 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+<Route path="/jobs/:id" element={<JobDetail />} />
 
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
