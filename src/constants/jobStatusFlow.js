@@ -1,0 +1,12 @@
+export const STATUS_FLOW = [
+    "AWAITING_ADMIN_APPROVAL",
+    "RECEIVED",
+    "GRINDING",
+    "SANDBLASTING",
+    "COATING",
+    "BONDING",
+    "FINISHING",
+    "INSPECTION",
+    "DISPATCHED",
+  ];
+  
