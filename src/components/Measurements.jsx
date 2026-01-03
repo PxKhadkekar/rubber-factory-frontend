@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/axios";
 
 const Measurements = ({ measurements, isEditable, jobId }) => {
@@ -16,7 +16,14 @@ const Measurements = ({ measurements, isEditable, jobId }) => {
     { key: "msWeight", label: "MS Weight" },
   ];
 
+  // Keep local state in sync if job reloads
+  useEffect(() => {
+    setLocalValues(measurements || {});
+  }, [measurements]);
+
   const handleChange = (key, value) => {
+    if (!isEditable) return;
+
     setLocalValues((prev) => ({
       ...prev,
       [key]: value,
@@ -29,7 +36,7 @@ const Measurements = ({ measurements, isEditable, jobId }) => {
     setSavingKey(key);
 
     try {
-      await api.patch(`/jobs/${jobId}`, {
+      await api.patch(`/jobs/${jobId}/measurements`, {
         measurements: {
           [key]: Number(localValues[key]),
         },
@@ -43,8 +50,14 @@ const Measurements = ({ measurements, isEditable, jobId }) => {
   };
 
   return (
-    <div>
+    <div className="section-card">
       <h3>Measurements</h3>
+
+      {!isEditable && (
+        <p className="empty-text">
+          Measurements are locked after dispatch.
+        </p>
+      )}
 
       {fields.map(({ key, label }) => (
         <div
@@ -74,7 +87,7 @@ const Measurements = ({ measurements, isEditable, jobId }) => {
             />
           ) : (
             <strong>
-              {measurements[key] !== undefined
+              {measurements?.[key] !== undefined
                 ? measurements[key]
                 : "—"}
             </strong>

@@ -6,17 +6,22 @@ import Measurements from "../components/Measurements";
 import { getUserRole } from "../utils/auth";
 import AdminActions from "../components/AdminActions";
 
-
-
+const STATUS_FLOW = [
+  "AWAITING_ADMIN_APPROVAL",
+  "GRINDING",
+  "SANDBLASTING",
+  "COATING",
+  "DISPATCHED",
+];
 
 const JobDetail = () => {
   const { id } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const role = getUserRole();
-const isEditable = role === "WORKER";
 
+  const role = getUserRole();
+  const isWorker = role === "WORKER";
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -24,11 +29,7 @@ const isEditable = role === "WORKER";
         const res = await api.get(`/jobs/${id}`);
         setJob(res.data);
       } catch (err) {
-        console.error(
-          "JOB DETAIL ERROR:",
-          err.response?.status,
-          err.response?.data
-        );
+        console.error("JOB DETAIL ERROR:", err);
         setError("Failed to load job");
       } finally {
         setLoading(false);
@@ -38,9 +39,38 @@ const isEditable = role === "WORKER";
     fetchJob();
   }, [id]);
 
+  // ===== STATUS CHANGE HANDLER (CORE OF UX POLISH) =====
+  const handleStatusChange = async (nextStatus) => {
+    if (nextStatus === job.status) return;
+
+    const confirmed = window.confirm(
+      `Move job from ${job.status} to ${nextStatus}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await api.patch(`/jobs/${job._id}/status`, {
+        status: nextStatus,
+      });
+
+      setJob(res.data);
+    } catch (err) {
+      console.error("STATUS UPDATE FAILED:", err);
+      alert("Failed to update status");
+    }
+  };
+
   if (loading) return <p>Loading job...</p>;
   if (error) return <p>{error}</p>;
   if (!job) return <p>Job not found</p>;
+
+  // ===== DETERMINE NEXT STATUS OPTIONS =====
+  const currentIndex = STATUS_FLOW.indexOf(job.status);
+  const nextStatuses =
+    currentIndex >= 0
+      ? STATUS_FLOW.slice(currentIndex + 1)
+      : [];
 
   return (
     <div style={{ padding: "24px", maxWidth: "900px" }}>
@@ -58,39 +88,51 @@ const isEditable = role === "WORKER";
         <p>
           <strong>Company:</strong> {job.companyName}
         </p>
-        <p>
-          <strong>Assigned Worker:</strong>{" "}
-          {job.assignedWorker ? "Assigned" : "Not assigned"}
-        </p>
       </section>
+
+      {/* ===== WORKER STATUS CONTROL ===== */}
+      {isWorker && job.status !== "DISPATCHED" && (
+        <section style={{ marginBottom: "24px" }}>
+          <h3>Update Status</h3>
+
+          <select
+            value={job.status}
+            onChange={(e) => handleStatusChange(e.target.value)}
+          >
+            <option value={job.status}>{job.status}</option>
+            {nextStatuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </section>
+      )}
 
       {/* ===== STATUS TIMELINE ===== */}
       <section style={{ marginBottom: "24px" }}>
         <StatusTimeline currentStatus={job.status} />
       </section>
 
+      {/* ===== MEASUREMENTS ===== */}
       <section style={{ marginBottom: "24px" }}>
-  <Measurements
-    measurements={job.measurements}
-    isEditable={isEditable}
-    jobId={job._id}
-  />
-</section>
+        <Measurements
+          measurements={job.measurements}
+          isEditable={isWorker}
+          jobId={job._id}
+        />
+      </section>
 
-
-
-
-      {/* ===== AUDIT LOG (COMING LATER) ===== */}
+      {/* ===== AUDIT LOG (PLACEHOLDER) ===== */}
       <section style={{ marginBottom: "24px" }}>
         <h3>Audit Log</h3>
-        <p>Audit entries will appear here.</p>
+        <p>No activity yet.</p>
       </section>
 
       {/* ===== ADMIN ACTIONS ===== */}
-<section>
-  <AdminActions job={job} />
-</section>
-
+      <section>
+        <AdminActions job={job} />
+      </section>
     </div>
   );
 };
