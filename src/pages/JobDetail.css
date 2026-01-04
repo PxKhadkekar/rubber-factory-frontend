@@ -95,3 +95,10 @@
   font-size: 14px;
   color: #374151;
 }
+
+.detail-section {
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+}

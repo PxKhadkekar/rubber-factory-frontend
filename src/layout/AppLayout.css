@@ -1,0 +1,18 @@
+/* ================= APP LAYOUT ================= */
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: #f9fafb;
+  min-height: 100vh;
+}
+
+/* ================= LAYOUT MARKERS ================= */
+
+.layout-marker {
+  margin: 12px 0;
+  font-size: 12px;
+  color: #9ca3af; /* light gray */
+  user-select: none;
+}

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import Toast from "../../components/Toast";
@@ -6,21 +7,12 @@ import "./AdminDashboard.css";
 
 function AdminDashboard() {
   const role = getRole();
+  const navigate = useNavigate();
 
   const [jobs, setJobs] = useState([]);
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ message: "", type: "" });
-
-  const [newJob, setNewJob] = useState({
-    jobNumber: "",
-    vehicleNumber: "",
-    rubberType: "",
-    punchNumber: 1,
-    processType: "GRINDING",
-    companyName: "",
-    price: "",
-  });
 
   /* -------------------- TOAST -------------------- */
   const showToast = (message, type = "success") => {
@@ -54,30 +46,6 @@ function AdminDashboard() {
     fetchWorkers();
   }, []);
 
-  /* -------------------- CREATE JOB -------------------- */
-  const handleJobChange = (e) => {
-    setNewJob({ ...newJob, [e.target.name]: e.target.value });
-  };
-
-  const createJob = async () => {
-    try {
-      await api.post("/jobs", newJob);
-      showToast("Job created, awaiting approval");
-      setNewJob({
-        jobNumber: "",
-        vehicleNumber: "",
-        rubberType: "",
-        punchNumber: 1,
-        processType: "GRINDING",
-        companyName: "",
-        price: "",
-      });
-      fetchJobs();
-    } catch (err) {
-      showToast(err.response?.data?.message || "Job creation failed", "error");
-    }
-  };
-
   /* -------------------- APPROVE JOB -------------------- */
   const approveJob = async (jobId) => {
     try {
@@ -110,33 +78,21 @@ function AdminDashboard() {
     (job) => job.status !== "AWAITING_ADMIN_APPROVAL"
   );
 
+  const JobLink = ({ job }) => (
+    <button
+      className="link-button"
+      onClick={() => navigate(`/jobs/${job._id}`)}
+    >
+      {job.jobNumber}
+    </button>
+  );
+
   return (
     <div className="dashboard">
       <h1>Admin Dashboard</h1>
       <p style={{ fontWeight: "bold", marginBottom: "16px" }}>
         Role: {role}
       </p>
-
-      {/* ================= CREATE JOB ================= */}
-      <section className="admin-section">
-        <h2>Create Job</h2>
-
-        <div className="create-job-form">
-          <input name="jobNumber" placeholder="Job Number" value={newJob.jobNumber} onChange={handleJobChange} />
-          <input name="vehicleNumber" placeholder="Vehicle Number" value={newJob.vehicleNumber} onChange={handleJobChange} />
-          <input name="rubberType" placeholder="Rubber Type" value={newJob.rubberType} onChange={handleJobChange} />
-          <input name="companyName" placeholder="Company Name" value={newJob.companyName} onChange={handleJobChange} />
-          <input name="price" type="number" placeholder="Price" value={newJob.price} onChange={handleJobChange} />
-          <input name="punchNumber" type="number" placeholder="Punch No" value={newJob.punchNumber} onChange={handleJobChange} />
-
-          <select name="processType" value={newJob.processType} onChange={handleJobChange}>
-            <option value="GRINDING">GRINDING</option>
-            <option value="COATING">COATING</option>
-          </select>
-
-          <button onClick={createJob}>Create Job</button>
-        </div>
-      </section>
 
       {/* ================= NEEDS APPROVAL ================= */}
       <section className="admin-section">
@@ -157,11 +113,13 @@ function AdminDashboard() {
             <tbody>
               {needsApproval.map((job) => (
                 <tr key={job._id}>
-                  <td>{job.jobNumber}</td>
+                  <td><JobLink job={job} /></td>
                   <td>{job.companyName}</td>
                   <td>{job.vehicleNumber}</td>
                   <td>
-                    <button onClick={() => approveJob(job._id)}>Approve</button>
+                    <button onClick={() => approveJob(job._id)}>
+                      Approve
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -189,7 +147,7 @@ function AdminDashboard() {
             <tbody>
               {inProgress.map((job) => (
                 <tr key={job._id}>
-                  <td>{job.jobNumber}</td>
+                  <td><JobLink job={job} /></td>
                   <td>{job.status}</td>
                   <td>
                     {job.assignedWorker ? (

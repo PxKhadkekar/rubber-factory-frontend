@@ -1,34 +1,123 @@
+/* ================= ADMIN SECTIONS (CARD STYLE) ================= */
+
+.admin-section {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 6px;
+  margin-bottom: 32px;
+}
+
+/* ================= SECTION HEADINGS ================= */
+
+.admin-section h2 {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 18px;
+}
+
+/* ================= TABLE BREATHING ROOM ================= */
+
+.job-table {
+  margin-top: 16px;
+}
+
+.job-table th,
+.job-table td {
+  vertical-align: middle;
+}
+
 .dashboard {
   padding: 24px;
+  background-color: #f9fafb;
+  min-height: 100vh;
 }
+
+/* ================= SECTIONS ================= */
 
 .admin-section {
   margin-bottom: 32px;
 }
 
+.admin-section h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+/* ================= TABLE ================= */
+
 .job-table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background-color: white;
 }
 
 .job-table th,
 .job-table td {
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #e5e7eb;
+  text-align: left;
 }
 
 .job-table th {
-  background-color: #f5f5f5;
+  background-color: #f3f4f6;
+  font-weight: 600;
 }
+
+/* ================= LINK BUTTON (Job No) ================= */
+
+.link-button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+/* ================= ACTION BUTTONS ================= */
+
+.job-table button {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.job-table button:hover {
+  background-color: #f3f4f6;
+}
+
+/* ================= SELECT ================= */
+
+.job-table select {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+/* ================= CREATE JOB FORM (if reused) ================= */
 
 .create-job-form {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   max-width: 400px;
 }
 
 .create-job-form input,
 .create-job-form select {
-  padding: 6px;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+/* ================= SMALL TEXT ================= */
+
+p {
+  color: #374151;
 }
