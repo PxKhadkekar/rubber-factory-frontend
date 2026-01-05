@@ -148,7 +148,21 @@ function AdminDashboard() {
               {inProgress.map((job) => (
                 <tr key={job._id}>
                   <td><JobLink job={job} /></td>
-                  <td>{job.status}</td>
+                  <td>
+  <div className="status-wrapper">
+    <span
+      className={`status-badge ${
+        job.status === "AWAITING_ADMIN_APPROVAL"
+          ? "status-pending"
+          : job.status === "DISPATCHED"
+          ? "status-completed"
+          : "status-in-progress"
+      }`}
+    />
+    {job.status}
+  </div>
+</td>
+
                   <td>
                     {job.assignedWorker ? (
                       job.assignedWorker.name

@@ -1,77 +1,95 @@
-/* ================= ADMIN SECTIONS (CARD STYLE) ================= */
-
-.admin-section {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 6px;
-  margin-bottom: 32px;
-}
-
-/* ================= SECTION HEADINGS ================= */
-
-.admin-section h2 {
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 18px;
-}
-
-/* ================= TABLE BREATHING ROOM ================= */
-
-.job-table {
-  margin-top: 16px;
-}
-
-.job-table th,
-.job-table td {
-  vertical-align: middle;
-}
-
+/* ================= DASHBOARD ================= */
 .dashboard {
   padding: 24px;
   background-color: #f9fafb;
   min-height: 100vh;
+  color: #333333;
 }
 
 /* ================= SECTIONS ================= */
-
 .admin-section {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 6px;
   margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .admin-section h2 {
-  margin-bottom: 12px;
+  color: #2d3748;
+  border-bottom: 2px solid #93bfc7;
+  padding-bottom: 8px;
+  margin-bottom: 20px;
   font-size: 18px;
 }
 
-/* ================= TABLE ================= */
-
-.job-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
+/* ================= EMPTY STATE ================= */
+.admin-section > p {
+  color: #718096;
+  font-style: italic;
+  padding: 20px;
+  text-align: center;
+  background-color: #f7fafc;
+  border-radius: 6px;
+  border: 1px dashed #cbd5e0;
 }
 
-.job-table th,
-.job-table td {
-  padding: 12px;
-  border: 1px solid #e5e7eb;
-  text-align: left;
+/* ================= TABLE ================= */
+.job-table {
+  width: 100%;
+  table-layout: fixed; /* CRITICAL */
+  border-collapse: collapse;
+  background-color: #ffffff;
+  /* color: #f0e491; */
 }
 
 .job-table th {
-  background-color: #f3f4f6;
+  /* background-color: #93bfc7; */
+  color: #4a70a9;
   font-weight: 600;
+  padding: 14px 8px;
+  text-align: left;
 }
 
-/* ================= LINK BUTTON (Job No) ================= */
+.job-table td {
+  color: #333333 !important;
+  padding: 12px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
 
+/* COLUMN WIDTHS */
+.job-table th:nth-child(1) {
+  width: 20%;
+}
+.job-table th:nth-child(2) {
+  width: 25%;
+}
+.job-table th:nth-child(3) {
+  width: 30%;
+}
+.job-table th:nth-child(4) {
+  width: 25%;
+}
+
+/* ROW COLORS */
+.job-table tbody tr:nth-child(even) {
+  background-color: #ecf4e8;
+}
+
+.job-table tbody tr:hover {
+  background-color: #cbf3bb;
+  transition: background-color 0.2s ease;
+}
+
+/* ================= JOB NUMBER LINK ================= */
 .link-button {
   background: none;
   border: none;
-  color: #2563eb;
-  cursor: pointer;
+  color: #2c5282 !important;
   font-weight: 600;
+  font-family: monospace;
+  cursor: pointer;
   padding: 0;
 }
 
@@ -79,45 +97,55 @@
   text-decoration: underline;
 }
 
-/* ================= ACTION BUTTONS ================= */
+/* ================= STATUS BADGES ================= */
+.status-wrapper {
+  display: flex;
+  align-items: center;
+}
 
+.status-badge {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-pending {
+  background-color: #e53e3e;
+}
+.status-in-progress {
+  background-color: #d69e2e;
+}
+.status-completed {
+  background-color: #74e9ab;
+}
+.status-received {
+  background-color: #a0aec0;
+}
+
+/* ================= ACTION BUTTONS ================= */
 .job-table button {
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  background-color: #f9fafb;
-  cursor: pointer;
+  background-color: #93bfc7;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
   border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .job-table button:hover {
-  background-color: #f3f4f6;
+  background-color: #7aaab3;
+}
+
+.job-table button:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
 }
 
 /* ================= SELECT ================= */
-
 .job-table select {
   padding: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e0;
   border-radius: 4px;
-}
-
-/* ================= CREATE JOB FORM (if reused) ================= */
-
-.create-job-form {
-  display: grid;
-  gap: 10px;
-  max-width: 400px;
-}
-
-.create-job-form input,
-.create-job-form select {
-  padding: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-}
-
-/* ================= SMALL TEXT ================= */
-
-p {
-  color: #374151;
 }

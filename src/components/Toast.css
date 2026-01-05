@@ -1,22 +1,32 @@
 .toast {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  right: 24px;
+  top: 24px;
+  background: var(--industrial-gray);
+  color: white;
   padding: 12px 16px;
   border-radius: 4px;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  z-index: 1000;
+  box-shadow: var(--shadow-soft);
+  animation: slideIn 0.3s ease;
 }
 
 .toast.success {
-  background-color: #16a34a;
+  background: var(--status-green);
 }
 
 .toast.error {
-  background-color: #dc2626;
+  background: var(--status-red);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .toast button {

@@ -1,0 +1,22 @@
+.status-timeline {
+  display: flex;
+  gap: 12px;
+}
+
+.status-step {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--cement);
+  color: white;
+}
+
+.status-step.active {
+  background: var(--safety-orange);
+  animation: pulseOnce 0.6s ease;
+}
+
+.status-step.complete {
+  background: var(--status-green);
+}
