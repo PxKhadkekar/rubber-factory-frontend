@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { getUserRole } from "../utils/auth";
+import toast from "react-hot-toast";
 
 const AdminActions = ({ job }) => {
   const role = getUserRole();
@@ -12,7 +13,7 @@ const AdminActions = ({ job }) => {
 
   const isAwaitingApproval = job.status === "AWAITING_ADMIN_APPROVAL";
 
-  // 🔒 ADMIN ONLY
+  // ADMIN ONLY
   if (role !== "ADMIN") {
     return null;
   }
@@ -44,10 +45,11 @@ const AdminActions = ({ job }) => {
 
     try {
       await api.patch(`/jobs/${job._id}/approve`);
-      window.location.reload(); // simple, reliable
+      toast.success("Job approved");
+      window.location.reload();
     } catch (err) {
       console.error("JOB APPROVAL FAILED:", err);
-      alert("Failed to approve job");
+      toast.error("Failed to approve job");
     }
   };
 
@@ -59,64 +61,65 @@ const AdminActions = ({ job }) => {
       await api.patch(`/jobs/${job._id}/assign-worker`, {
         workerId: selectedWorker,
       });
-
+      toast.success("Worker assigned");
       window.location.reload();
     } catch (err) {
       console.error("ASSIGN WORKER FAILED:", err);
-      alert("Failed to assign worker");
+      toast.error("Failed to assign worker");
     }
   };
 
   return (
-    <div className="section-card">
-      <h3>Admin Actions</h3>
-
+    <div className="w-full">
       {/* ===== APPROVAL SECTION ===== */}
       {isAwaitingApproval ? (
-        <div style={{ marginBottom: "16px" }}>
-          <button onClick={handleApprove}>
+        <div className="mb-4">
+          <button 
+            onClick={handleApprove}
+            className="w-full sm:w-auto inline-flex justify-center items-center py-2.5 px-6 border border-transparent rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+          >
             Approve Job
           </button>
         </div>
       ) : (
-        <p className="empty-text">Job already approved.</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400 italic mb-4">Job already approved by administrator.</p>
       )}
 
-      {/* ===== WORKER ASSIGNMENT (ONLY AFTER APPROVAL) ===== */}
+      {/* ===== WORKER ASSIGNMENT ===== */}
       {!isAwaitingApproval && (
-        <>
-          {loading && <p>Loading workers...</p>}
-          {error && <p>{error}</p>}
+        <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
+          {loading && <p className="text-sm text-gray-500 dark:text-slate-400">Loading workers...</p>}
+          {error && <p className="text-sm text-red-500">{error}</p>}
 
           {!loading && !error && (
-            <div style={{ marginTop: "12px" }}>
-              <label>
-                Assign Worker:
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                Assign Worker
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <select
                   value={selectedWorker}
                   onChange={(e) => setSelectedWorker(e.target.value)}
-                  style={{ marginLeft: "8px" }}
+                  className="flex-1 px-4 py-2.5 text-sm border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 >
-                  <option value="">Select worker</option>
+                  <option value="">Select an operator</option>
                   {workers.map((worker) => (
                     <option key={worker._id} value={worker._id}>
-                      {worker.name}
+                      {worker.name} ({worker.email})
                     </option>
                   ))}
                 </select>
-              </label>
-
-              <div style={{ marginTop: "8px" }}>
                 <button
                   onClick={handleAssignWorker}
                   disabled={!selectedWorker}
+                  className="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-xl shadow-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Assign
                 </button>
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

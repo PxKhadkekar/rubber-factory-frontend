@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import Login from "./pages/Login";
 import ProtectedRoute from "./auth/ProtectedRoute";
@@ -7,6 +8,7 @@ import AppLayout from "./layout/AppLayout";
 import AdminLayout from "./layout/AdminLayout";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
 import CreateJob from "./pages/admin/jobs/CreateJob";
 
 import WorkerDashboard from "./pages/worker/WorkerDashboard";
@@ -17,7 +19,9 @@ import AuditLogsPage from "./pages/admin/AuditLogsPage";
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Toaster position="top-right" />
+      <Routes>
       {/* Public */}
       <Route path="/login" element={<Login />} />
 
@@ -34,6 +38,7 @@ function App() {
           }
         >
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="create-job" element={<CreateJob />} />
           <Route path="workers" element={<WorkersPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
@@ -58,6 +63,7 @@ function App() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
+    </>
   );
 }
 
