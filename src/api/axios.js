@@ -4,12 +4,12 @@ import axios from "axios";
  * Central API instance
  * - One source of truth for backend communication
  * - Automatically attaches JWT token
- * - Works in dev + production
+ * - Timeout set to 45s to allow free-tier cloud instances (Render) to wake from hibernation
  */
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 10000,
+  timeout: 45000,
 });
 
 // Attach token automatically to every request
@@ -24,11 +24,10 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Optional: global response error handling (later)
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // You can later add logout-on-401 logic here
     return Promise.reject(error);
   }
 );

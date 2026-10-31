@@ -40,7 +40,13 @@ function Login() {
         navigate("/worker");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      if (err.code === "ECONNABORTED" || !err.response) {
+        toast.error("Connecting to server... free tier is waking up. Please retry in a few seconds.", { duration: 6000 });
+      } else if (err.response?.status === 503) {
+        toast.error(err.response?.data?.message || "Backend service or database is reconnecting. Please wait a moment.", { duration: 6000 });
+      } else {
+        toast.error(err.response?.data?.message || "Invalid credentials. Please check your email and password.");
+      }
     } finally {
       setLoading(false);
     }
